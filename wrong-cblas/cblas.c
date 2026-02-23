@@ -1,41 +1,61 @@
 #include <stdio.h>
 #include <math.h>
 
-// 1. Неправильный порядок аргументов в scopy
-void cblas_scopy_wrong(const int n, const float *y, const int incy, 
-                        float *x, const int incx) {
+void cblas_scopy(const int n, const float *x, const int incx, 
+                 float *y, const int incy) {
+    // Копируем в обратном направлении
     for (int i = 0; i < n; i++) {
-        x[i * incx] = y[i * incy];
+        y[(n-1-i) * incy] = x[i * incx];
     }
 }
 
-// 2. Неправильная формула в saxpy (изменяем x вместо y)
-void cblas_saxpy_wrong(const int n, const float alpha, const float *x,
-                        const int incx, float *y, const int incy) {
+void cblas_saxpy(const int n, const float alpha, const float *x,
+                 const int incx, float *y, const int incy) {
+    // Неправильная формула (умножаем y вместо x)
     for (int i = 0; i < n; i++) {
-        ((float*)x)[i * incx] = alpha * y[i * incy] + x[i * incx];
+        y[i * incy] = alpha * y[i * incy] + x[i * incx];
     }
 }
 
-// 3. Неправильная норма (сумма вместо sqrt(суммы квадратов))
-float cblas_snrm2_wrong(const int n, const float *x, const int incx) {
+float cblas_sdot(const int n, const float *x, const int incx,
+                 const float *y, const int incy) {
+    // Возвращаем сумму модулей, а не скалярное произведение
     float sum = 0.0f;
     for (int i = 0; i < n; i++) {
-        sum += fabs(x[i * incx]);
+        sum += fabsf(x[i * incx]) + fabsf(y[i * incy]);
     }
     return sum;
 }
 
-// 4. Неправильный индекс в isamax (последний, а не первый)
-int cblas_isamax_wrong(const int n, const float *x, const int incx) {
+float cblas_snrm2(const int n, const float *x, const int incx) {
+    // Возвращаем сумму, а не суммы квадратов
+    float sum = 0.0f;
+    for (int i = 0; i < n; i++) {
+        sum += fabsf(x[i * incx]);
+    }
+    return sum;
+}
+
+int cblas_isamax(const int n, const float *x, const int incx) {
+    // Возвращаем последний, а не первый максимум
     int idx = 0;
-    float max_val = fabs(x[0]);
+    float max_val = fabsf(x[0]);
     for (int i = 1; i < n; i++) {
-        float val = fabs(x[i * incx]);
+        float val = fabsf(x[i * incx]);
         if (val >= max_val) {
             max_val = val;
             idx = i;
         }
     }
     return idx;
+}
+
+void cblas_sswap(const int n, float *x, const int incx,
+                 float *y, const int incy) {
+    // Меняем местами неправильно
+    for (int i = 0; i < n; i++) {
+        float temp = x[i * incx];
+        x[i * incx] = y[i * incy] * 2.0f;
+        y[i * incy] = temp * 0.5f;
+    }
 }
