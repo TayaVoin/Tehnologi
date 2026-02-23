@@ -1,0 +1,201 @@
+        -:    0:Source:level1.c
+        -:    0:Graph:level1.gcno
+        -:    0:Data:level1.gcda
+        -:    0:Runs:2
+        -:    0:Programs:1
+        -:    1:#include <stdio.h>
+        -:    2:#include <stdlib.h>
+        -:    3:#include <math.h>
+        -:    4:#include <string.h>
+        -:    5:#include <complex.h>
+        -:    6:#include "cblas.h"
+        -:    7:
+        -:    8:#define MAX_N 10
+        -:    9:#define EPSILON 1e-6
+        -:   10:
+        -:   11:typedef struct {
+        -:   12:    char test_name[50];
+        -:   13:    int passed;
+        -:   14:    char message[100];
+        -:   15:} TestResult;
+        -:   16:
+        -:   17:TestResult results[100];
+        -:   18:int test_count = 0;
+        -:   19:
+       46:   20:int assert_float_eq(float a, float b, float eps) {
+       46:   21:    return fabsf(a - b) < eps;
+        -:   22:}
+        -:   23:
+    #####:   24:int assert_double_eq(double a, double b, double eps) {
+    #####:   25:    return fabs(a - b) < eps;
+        -:   26:}
+        -:   27:
+       14:   28:void record_result(const char* name, int passed, const char* message) {
+       14:   29:    strcpy(results[test_count].test_name, name);
+       14:   30:    results[test_count].passed = passed;
+       14:   31:    strcpy(results[test_count].message, message);
+       14:   32:    test_count++;
+       14:   33:    printf("%s: %s\n", name, passed ? "PASS" : "FAIL");
+       14:   34:    if (!passed) printf("  Message: %s\n", message);
+       14:   35:}
+        -:   36:
+        -:   37:// Тест 1: scopy - копирование вектора float
+        2:   38:void test_scopy(void) {
+        2:   39:    float x[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f};
+        2:   40:    float y[] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+        2:   41:    float expected[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f};
+        2:   42:    int n = 5;
+        -:   43:    
+        2:   44:    cblas_scopy(n, x, 1, y, 1);
+        -:   45:    
+        2:   46:    int passed = 1;
+       12:   47:    for (int i = 0; i < n; i++) {
+       10:   48:        if (!assert_float_eq(y[i], expected[i], EPSILON)) {
+    #####:   49:            passed = 0;
+    #####:   50:            break;
+        -:   51:        }
+       10:   52:    }
+        2:   53:    record_result("scopy basic", passed, "Копирование вектора float");
+        2:   54:}
+        -:   55:
+        -:   56:// Тест 2: scopy с ненулевым шагом
+        2:   57:void test_scopy_stride(void) {
+        2:   58:    float x[] = {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f};
+        2:   59:    float y[] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+        2:   60:    float expected[] = {1.0f, 0.0f, 3.0f, 0.0f, 5.0f, 0.0f, 7.0f};
+        2:   61:    int n = 4;  // берем каждый второй элемент
+        -:   62:    
+        2:   63:    cblas_scopy(n, x, 2, y, 2);
+        -:   64:    
+        2:   65:    int passed = 1;
+       16:   66:    for (int i = 0; i < 7; i++) {
+       14:   67:        if (!assert_float_eq(y[i], expected[i], EPSILON)) {
+    #####:   68:            passed = 0;
+    #####:   69:            break;
+        -:   70:        }
+       14:   71:    }
+        2:   72:    record_result("scopy stride", passed, "Копирование с шагом");
+        2:   73:}
+        -:   74:
+        -:   75:// Тест 3: saxpy - y = a*x + y
+        2:   76:void test_saxpy(void) {
+        2:   77:    float x[] = {1.0f, 2.0f, 3.0f};
+        2:   78:    float y[] = {1.0f, 1.0f, 1.0f};
+        2:   79:    float expected[] = {3.5f, 6.0f, 8.5f};  // 2.5*x + y
+        2:   80:    int n = 3;
+        2:   81:    float alpha = 2.5f;
+        -:   82:    
+        2:   83:    cblas_saxpy(n, alpha, x, 1, y, 1);
+        -:   84:    
+        2:   85:    int passed = 1;
+        8:   86:    for (int i = 0; i < n; i++) {
+        6:   87:        if (!assert_float_eq(y[i], expected[i], EPSILON)) {
+    #####:   88:            passed = 0;
+    #####:   89:            break;
+        -:   90:        }
+        6:   91:    }
+        2:   92:    record_result("saxpy alpha=2.5", passed, "y = 2.5*x + y");
+        2:   93:}
+        -:   94:
+        -:   95:// Тест 4: sdot - скалярное произведение
+        2:   96:void test_sdot(void) {
+        2:   97:    float x[] = {1.0f, 2.0f, 3.0f};
+        2:   98:    float y[] = {4.0f, 5.0f, 6.0f};
+        2:   99:    float expected = 1.0f*4.0f + 2.0f*5.0f + 3.0f*6.0f;  // = 32.0
+        2:  100:    int n = 3;
+        -:  101:    
+        2:  102:    float result = cblas_sdot(n, x, 1, y, 1);
+        -:  103:    
+        2:  104:    int passed = assert_float_eq(result, expected, EPSILON);
+        2:  105:    char msg[100];
+        2:  106:    sprintf(msg, "Ожидалось: %f, Получено: %f", expected, result);
+        2:  107:    record_result("sdot basic", passed, msg);
+        2:  108:}
+        -:  109:
+        -:  110:// Тест 5: snrm2 - евклидова норма
+        2:  111:void test_snrm2(void) {
+        2:  112:    float x[] = {3.0f, 4.0f};
+        2:  113:    float expected = 5.0f;  // sqrt(3^2 + 4^2)
+        2:  114:    int n = 2;
+        -:  115:    
+        2:  116:    float result = cblas_snrm2(n, x, 1);
+        -:  117:    
+        2:  118:    int passed = assert_float_eq(result, expected, EPSILON);
+        2:  119:    char msg[100];
+        2:  120:    sprintf(msg, "Ожидалось: %f, Получено: %f", expected, result);
+        2:  121:    record_result("snrm2 basic", passed, msg);
+        2:  122:}
+        -:  123:
+        -:  124:// Тест 6: isamax - индекс максимального элемента
+        2:  125:void test_isamax(void) {
+        2:  126:    float x[] = {-5.0f, 1.0f, 3.0f, -2.0f, 4.0f};
+        2:  127:    int expected = 0;  // индекс первого элемента с макс. модулем (|-5|=5)
+        2:  128:    int n = 5;
+        -:  129:    
+        2:  130:    int result = cblas_isamax(n, x, 1);
+        -:  131:    
+        2:  132:    int passed = (result == expected);
+        2:  133:    char msg[100];
+        2:  134:    sprintf(msg, "Ожидалось: %d, Получено: %d", expected, result);
+        2:  135:    record_result("isamax basic", passed, msg);
+        2:  136:}
+        -:  137:
+        -:  138:// Тест 7: sswap - обмен векторов
+        2:  139:void test_sswap(void) {
+        2:  140:    float x[] = {1.0f, 2.0f, 3.0f};
+        2:  141:    float y[] = {4.0f, 5.0f, 6.0f};
+        2:  142:    float expected_x[] = {4.0f, 5.0f, 6.0f};
+        2:  143:    float expected_y[] = {1.0f, 2.0f, 3.0f};
+        2:  144:    int n = 3;
+        -:  145:    
+        2:  146:    cblas_sswap(n, x, 1, y, 1);
+        -:  147:    
+        2:  148:    int passed = 1;
+        8:  149:    for (int i = 0; i < n; i++) {
+        6:  150:        if (!assert_float_eq(x[i], expected_x[i], EPSILON) ||
+        6:  151:            !assert_float_eq(y[i], expected_y[i], EPSILON)) {
+    #####:  152:            passed = 0;
+    #####:  153:            break;
+        -:  154:        }
+        6:  155:    }
+        2:  156:    record_result("sswap basic", passed, "Обмен векторов");
+        2:  157:}
+        -:  158:
+        2:  159:int main(int argc, char** argv) {
+        2:  160:    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        2:  161:    printf("CBLAS Level 1 Interface Tests\n");
+        2:  162:    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
+        -:  163:    
+        -:  164:    // Установка количества потоков
+        -:  165:    #ifdef OPENBLAS_NUM_THREADS
+        -:  166:    openblas_set_num_threads(OPENBLAS_NUM_THREADS);
+        -:  167:    printf("Установлено потоков: %d\n", OPENBLAS_NUM_THREADS);
+        -:  168:    #endif
+        -:  169:    
+        2:  170:    test_scopy();
+        2:  171:    test_scopy_stride();
+        2:  172:    test_saxpy();
+        2:  173:    test_sdot();
+        2:  174:    test_snrm2();
+        2:  175:    test_isamax();
+        2:  176:    test_sswap();
+        -:  177:    
+        2:  178:    printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        2:  179:    printf("Итоги тестирования\n");
+        2:  180:    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        -:  181:    
+        2:  182:    int total_passed = 0;
+       16:  183:    for (int i = 0; i < test_count; i++) {
+       28:  184:        printf("%-25s: %s\n", results[i].test_name, 
+       14:  185:               results[i].passed ? "PASS" : "FAIL");
+       14:  186:        if (results[i].passed) total_passed++;
+       14:  187:    }
+        -:  188:    
+        2:  189:    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        2:  190:    printf("Пройдено: %d/%d тестов (%.1f%%)\n", 
+        2:  191:           total_passed, test_count, 
+        2:  192:           100.0 * total_passed / test_count);
+        2:  193:    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
+        -:  194:    
+        4:  195:    return (total_passed == test_count) ? 0 : 1;
+        2:  196:}

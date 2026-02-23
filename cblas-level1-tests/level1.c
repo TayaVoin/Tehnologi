@@ -157,9 +157,9 @@ void test_sswap(void) {
 }
 
 int main(int argc, char** argv) {
-    printf("========================================\n");
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
     printf("CBLAS Level 1 Interface Tests\n");
-    printf("========================================\n\n");
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n\n");
     
     // Установка количества потоков
     #ifdef OPENBLAS_NUM_THREADS

@@ -6,8 +6,8 @@ DEFINES =
 
 OPENBLAS_HOME ?= /Users/taya/openblas_test/OpenBLAS/install
 
-TARGET = test_cblas_level1
-SOURCES = test_cblas_level1.c
+TARGET = level1
+SOURCES = level1.c
 OBJECTS = $(SOURCES:.c=.o)
 
 all: CFLAGS += -DOPENBLAS_NUM_THREADS=1
