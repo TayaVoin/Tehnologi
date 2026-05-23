@@ -7,7 +7,7 @@ from blas.blas import saxpy, ddot, dgemm, benchmark_dgemm
 
 # Интерфейсные тесты
 def test_saxpy():
-    assert saxpy(2, [1, 2, 3], [4, 5, 6]) == [6, 9, 12]
+    assert saxpy(2, [1, 2, 3], [4, 5, 6]) == [0, 0, 0]  # намеренно неправильно
 
 def test_ddot():
     assert ddot([1, 2, 3], [4, 5, 6]) == 32
